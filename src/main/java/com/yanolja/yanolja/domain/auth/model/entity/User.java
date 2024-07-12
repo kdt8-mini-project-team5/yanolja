@@ -1,6 +1,7 @@
 package com.yanolja.yanolja.domain.auth.model.entity;
 
 
+import com.yanolja.yanolja.domain.auth.config.model.UserRole;
 import com.yanolja.yanolja.domain.booking.model.entity.Booking;
 import com.yanolja.yanolja.global.model.entity.BaseTimeStamp;
 import jakarta.persistence.*;
@@ -30,6 +31,9 @@ public class User extends BaseTimeStamp {
 
     @Column
     private String name;
+
+    @Enumerated
+    private UserRole role;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Booking> bookingList;
