@@ -29,24 +29,12 @@ public class AccommodationService {
     @Cacheable(cacheNames = "accommodationDetails", key = "#id", unless = "#result == null")
     @Transactional(readOnly = true)
     public AccommodationDetailResponse getAccommodationById(Long id, LocalDate checkInDate, LocalDate checkOutDate) {
+        validateDates(checkInDate, checkOutDate);
+
         Accommodation accommodation = accommodationRepository.findAccommodationDetailById(id)
                 .orElseThrow(() -> new AccommodationException(AccommodationErrorCode.NOT_FOUND));
 
-        LocalDateTime checkInDateTime = checkInDate.atStartOfDay();
-        LocalDateTime checkOutDateTime = checkOutDate.atTime(LocalTime.MAX);
-
-        List<Room> availableRooms = roomRepository.findAvailableRoomsWithImages(accommodation.getId(), checkInDateTime, checkOutDateTime);
-
-        List<RoomResponse> roomResponses = availableRooms.stream()
-                .map(room -> new RoomResponse(
-                        room.getId(),
-                        room.getTitle(),
-                        room.getPrice(),
-                        room.getMinPeople(),
-                        room.getMaxPeople(),
-                        new ArrayList<>(room.getImages())
-                ))
-                .toList();
+        List<RoomResponse> roomResponses = getRoomResponses(accommodation, checkInDate, checkOutDate);
 
         return new AccommodationDetailResponse(
                 Double.parseDouble(accommodation.getLongitude()),
@@ -69,8 +57,30 @@ public class AccommodationService {
                 accommodation.getTel(),
                 accommodation.isDryer(),
                 roomResponses.size(),
-                new ArrayList<>(accommodation.getImages()),
+                List.copyOf(accommodation.getImages()),
                 roomResponses
         );
+    }
+
+    private List<RoomResponse> getRoomResponses(Accommodation accommodation, LocalDate checkInDate, LocalDate checkOutDate) {
+        LocalDateTime checkInDateTime = checkInDate.atStartOfDay();
+        LocalDateTime checkOutDateTime = checkOutDate.atTime(LocalTime.MAX);
+        List<Room> availableRooms = roomRepository.findAvailableRoomsWithImages(accommodation.getId(), checkInDateTime, checkOutDateTime);
+
+        return availableRooms.stream()
+                .map(room -> new RoomResponse(
+                        room.getId(),
+                        room.getTitle(),
+                        room.getPrice(),
+                        room.getMinPeople(),
+                        room.getMaxPeople(),
+                        List.copyOf(room.getImages())
+                )).toList();
+    }
+
+    private void validateDates(LocalDate checkInDate, LocalDate checkOutDate) {
+        if (checkInDate != null && checkOutDate != null && checkInDate.isAfter(checkOutDate)) {
+            throw new AccommodationException(AccommodationErrorCode.INVALID_DATE);
+        }
     }
 }
