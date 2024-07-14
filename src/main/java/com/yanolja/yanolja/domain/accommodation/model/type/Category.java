@@ -25,4 +25,19 @@ public enum Category {
 
     private final String type;
 
+    private static final Map<String, Category> BY_TYPE =
+        Stream.of(values()).collect(Collectors.toMap(Category::getType, Function.identity()));
+
+    public static Category valueOfType(String type) {
+        return BY_TYPE.get(type);
+    }
+
+    public static boolean checkValidCategory(String type) {
+        Category category = BY_TYPE.get(type);
+        if (category == null){
+            return false;
+        }
+        return true;
+    }
+
 }

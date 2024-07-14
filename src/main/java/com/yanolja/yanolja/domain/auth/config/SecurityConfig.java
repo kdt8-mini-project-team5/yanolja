@@ -47,6 +47,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(matcher -> matcher
                         .requestMatchers("/api/register/**", "/api/login").permitAll()
+                    .requestMatchers("/api/accommodation/**").permitAll()
                         .anyRequest().authenticated());
 
         http.addFilterBefore(loginFilter(), UsernamePasswordAuthenticationFilter.class);
