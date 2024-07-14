@@ -4,7 +4,6 @@ import com.yanolja.yanolja.domain.accommodation.model.response.AccommodationSimp
 import com.yanolja.yanolja.domain.accommodation.model.response.AccommodationsResponse;
 import com.yanolja.yanolja.domain.accommodation.model.type.Category;
 import com.yanolja.yanolja.domain.accommodation.repository.AccommodationRepository;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +23,8 @@ public class AccommodationService {
     @Cacheable(cacheNames = "accommodationList", key = "#category.name() + ':' + #cursorId + ':' + #cursorMinPrice")
     @Transactional(readOnly = true)
     public AccommodationsResponse findByCategory(Category category, Long cursorId, Pageable pageable, Long cursorMinPrice) {
-        Page<AccommodationSimpleDTO> accommodationSimpleDTOPage = getAccommodationPage(category, cursorId, pageable, cursorMinPrice);
+        Page<AccommodationSimpleDTO> accommodationSimpleDTOPage = getAccommodationSimpleProjectionList(category, cursorId, pageable, cursorMinPrice);
 
-        System.out.println(accommodationSimpleDTOPage);
         List<Long> idList = accommodationSimpleDTOPage.stream()
             .map(AccommodationSimpleDTO::id).toList();
         List<String> accommodationImages = getAccommodationImages(idList);
@@ -34,17 +32,15 @@ public class AccommodationService {
         return AccommodationsResponse.createAccommodationsResponse(accommodationSimpleDTOPage, accommodationImages);
     }
 
-    private Page<AccommodationSimpleDTO> getAccommodationPage(Category category, Long cursorId, Pageable pageable, Long cursorMinPrice) {
+    private Page<AccommodationSimpleDTO> getAccommodationSimpleProjectionList(Category category, Long cursorId, Pageable pageable, Long cursorMinPrice) {
         if (cursorId == null) {
             if (cursorMinPrice == null) {
                 return accommodationRepository.findByCategory(category, pageable);
             }else{
-                System.out.println("minprice");
                 return accommodationRepository.findByCategoryWithCursorMinPrice(category,cursorMinPrice,pageable);
             }
         } else {
-            System.out.println("cursor");
-            return accommodationRepository.findByCategoryWithCursor(category, cursorId, pageable, cursorMinPrice);
+            return accommodationRepository.findByCategoryWithCursor(category,cursorMinPrice,cursorId,pageable);
         }
     }
 

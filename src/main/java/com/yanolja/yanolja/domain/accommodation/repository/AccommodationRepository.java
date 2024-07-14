@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface AccommodationRepository extends JpaRepository<Accommodation, Long> {
 
     @Query("SELECT new com.yanolja.yanolja.domain.accommodation.model.response.AccommodationSimpleDTO(a.id,a.title,a.minPrice,a.region) "
-        + "FROM Accommodation a WHERE a.category = :category ORDER BY a.minPrice , a.id DESC") // minPrice 기반 정렬
+        + "FROM Accommodation a WHERE a.category = :category ORDER BY a.minPrice , a.id DESC")
     Page<AccommodationSimpleDTO> findByCategory(Category category, Pageable pageable);
 
     @Query(
@@ -24,14 +24,9 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
             "FROM Accommodation a " +
             "WHERE a.category = :category AND a.minPrice > :minPrice " +
             "ORDER BY a.minPrice, a.id DESC",
-        countQuery = "SELECT COUNT(a.id) FROM Accommodation a WHERE a.category = :category AND (a.minPrice = :minPrice AND a.id < :cursorId) or a.minPrice > :minPrice"
+        countQuery = "SELECT COUNT(a.id) FROM Accommodation a WHERE a.category = :category AND a.minPrice = :minPrice or a.minPrice > :minPrice"
     )
-    Page<AccommodationSimpleDTO> findByCategoryWithCursor(Category category,Long cursorId, Pageable pageable, Long minPrice);
-
-
-/*    @Query("SELECT new com.yanolja.yanolja.domain.accommodation.model.response.AccommodationSimpleDTO(a.id,a.title,a.minPrice,a.region) "
-        + "FROM Accommodation a WHERE a.category = :category AND (a.minPrice = :minPrice AND a.id < :cursorId) or a.minPrice > :minPrice ORDER BY a.minPrice, a.id DESC")
-    Page<AccommodationSimpleDTO> findByCategoryWithCursor(Category category,Long cursorId, Pageable pageable, Long minPrice);*/
+    Page<AccommodationSimpleDTO> findByCategoryWithCursor(Category category, Long minPrice, Long cursorId, Pageable pageable);
 
     @Query(
         value = "SELECT new com.yanolja.yanolja.domain.accommodation.model.response.AccommodationSimpleDTO(a.id,a.title,a.minPrice,a.region) " +
@@ -44,13 +39,9 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
             "ORDER BY a.minPrice, a.id DESC",
         countQuery = "SELECT COUNT(a.id) FROM Accommodation a WHERE a.category = :category AND a.minPrice = :minPrice or a.minPrice > :minPrice"
     )
-    Page<AccommodationSimpleDTO> findByCategoryWithCursorMinPrice(Category category,Long minPrice ,Pageable pageable);
+    Page<AccommodationSimpleDTO> findByCategoryWithCursorMinPrice(Category category, Long minPrice, Pageable pageable);
 
-/*
-    @Query("SELECT new com.yanolja.yanolja.domain.accommodation.model.response.AccommodationSimpleDTO(a.id,a.title,a.minPrice,a.region) "
-        + "FROM Accommodation a WHERE a.category = :category AND a.minPrice = :minPrice or a.minPrice > :minPrice ORDER BY a.minPrice, a.id DESC")
-    Page<AccommodationSimpleDTO> findByCategoryWithCursorMinPrice(Category category,Long minPrice ,Pageable pageable);
-*/
+
 
     @Query("SELECT a.images FROM Accommodation a WHERE a.id in :ids order by FIND_IN_SET(a.id,:idsString)")
     List<String> findAccommodationImagesByIds(List<Long> ids, String idsString);
