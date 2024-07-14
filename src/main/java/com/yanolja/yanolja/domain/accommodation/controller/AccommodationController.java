@@ -3,6 +3,7 @@ package com.yanolja.yanolja.domain.accommodation.controller;
 import com.yanolja.yanolja.domain.accommodation.exception.AccommodationException;
 import com.yanolja.yanolja.domain.accommodation.exception.errorcode.AccommodationErrorCode;
 import com.yanolja.yanolja.domain.accommodation.model.response.AccommodationDetailResponse;
+import com.yanolja.yanolja.domain.accommodation.model.response.AccommodationSearchResponse;
 import com.yanolja.yanolja.domain.accommodation.service.AccommodationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,5 +28,11 @@ public class AccommodationController {
 
         AccommodationDetailResponse accommodationDetailResponse = accommodationService.getAccommodationById(id, checkInDate, checkOutDate);
         return ResponseEntity.ok(accommodationDetailResponse);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<AccommodationSearchResponse>> searchAccommodations(@RequestParam String keyword) {
+        List<AccommodationSearchResponse> accommodations = accommodationService.searchAccommodations(keyword);
+        return ResponseEntity.ok(accommodations);
     }
 }
