@@ -1,5 +1,6 @@
 package com.yanolja.yanolja.domain.cart.service;
 
+import com.yanolja.yanolja.domain.auth.annotaion.GetUser;
 import com.yanolja.yanolja.domain.auth.config.model.CustomUserDetails;
 import com.yanolja.yanolja.domain.auth.model.entity.User;
 import com.yanolja.yanolja.domain.booking.exception.BookingException;
@@ -35,7 +36,8 @@ public class CartService {
 
     private final BookingRepository bookingRepository;
 
-    public void createCart(CartRequest cartRequest, Long userId) {
+    @GetUser
+    public void createCart(CartRequest cartRequest, CustomUserDetails customUserDetails) {
 
         // room 이 올바른지 확인 후 price 가져오기
         Room room = roomRepository.findRoomAndAccommodationById(cartRequest.roomId())
@@ -45,7 +47,7 @@ public class CartService {
         LocalDateTime checkOutDatetime = LocalDateTime.of(cartRequest.checkOutDate(), room.getAccommodation().getCheckOut());
 
         // 같은 요청의 장바구니가 이미 있는지 확인
-        checkEqualsCartInDB(cartRequest.roomId(),userId,checkInDatetime,checkOutDatetime);
+        checkEqualsCartInDB(cartRequest.roomId(),customUserDetails.getUser().getId(),checkInDatetime,checkOutDatetime);
 
         // 예약 가능한 장바구니 인지
         if(isConflictingBookings(cartRequest.roomId(),checkInDatetime,checkOutDatetime)){
@@ -54,7 +56,7 @@ public class CartService {
 
         // 장바구니에 저장
         Cart cart = Cart.builder()
-            .user(User.builder().id(userId).build())
+            .user(customUserDetails.getUser())
             .room(room)
             .totalPrice(ChronoUnit.DAYS.between(checkInDatetime.toLocalDate(), checkOutDatetime.toLocalDate()) * room.getPrice())
             .people(cartRequest.people())
@@ -84,10 +86,11 @@ public class CartService {
         return false;
     }
 
+    @GetUser
     @Transactional(readOnly = true)
     public CartListResponse findCartListByUserId(CustomUserDetails customUserDetails) {
         //cart 정보 가져오기
-        List<Cart> cartList = cartRepository.findByUserId(customUserDetails.getUserId());
+        List<Cart> cartList = cartRepository.findByUserId(customUserDetails.getUser().getId());
 
         List<Boolean> isBookingList = cartList.stream()
             .map(cart -> (!cart.getCheckInDateTime().toLocalDate().isBefore(LocalDate.now()))
@@ -96,14 +99,16 @@ public class CartService {
         return CartListResponse.createCartListResponse(cartList,isBookingList);
     }
 
+    @GetUser
     @Transactional(readOnly = true)
     public CartCountResponse getCartCount(CustomUserDetails customUserDetails) {
         return new CartCountResponse(cartRepository.countByUserId(customUserDetails.getUserId()));
     }
 
+    @GetUser
     public void deleteCartByCartIdList(List<Long> cartIdList, CustomUserDetails customUserDetails) {
 
-        int deleteCount = cartRepository.deleteAllByIds(cartIdList, customUserDetails.getUserId());
+        int deleteCount = cartRepository.deleteAllByIds(cartIdList, customUserDetails.getUser().getId());
 
         if (deleteCount == 0) {
             throw new CartException(CartErrorCode.FAIL_DELETE);

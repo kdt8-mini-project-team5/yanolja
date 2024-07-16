@@ -31,7 +31,7 @@ public class CartController {
         @RequestBody @Valid CartRequest cartRequest,
         @AuthenticationPrincipal CustomUserDetails customUserDetails
     ){
-        cartService.createCart(cartRequest, customUserDetails.getUserId());
+        cartService.createCart(cartRequest, customUserDetails);
         return APIUtil.OK();
     }
 
