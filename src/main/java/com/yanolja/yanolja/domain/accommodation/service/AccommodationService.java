@@ -20,19 +20,17 @@ public class AccommodationService {
 
     private final AccommodationRepository accommodationRepository;
 
-    @Cacheable(cacheNames = "accommodationList", key = "#category.name() + ':' + #cursorId + ':' + #cursorMinPrice")
+    @Cacheable(cacheNames = "accommodationListByCategory", key = "#category.name() + ':' + #cursorId + ':' + #cursorMinPrice")
     @Transactional(readOnly = true)
     public AccommodationsResponse findByCategory(Category category, Long cursorId, Pageable pageable, Long cursorMinPrice) {
-        Page<AccommodationSimpleDTO> accommodationSimpleDTOPage = getAccommodationSimpleProjectionList(category, cursorId, pageable, cursorMinPrice);
+        Page<AccommodationSimpleDTO> accommodationSimpleDTOPage = getAccommodationSimpleDTOList(category, cursorId, pageable, cursorMinPrice);
 
-        List<Long> idList = accommodationSimpleDTOPage.stream()
-            .map(AccommodationSimpleDTO::id).toList();
-        List<String> accommodationImages = getAccommodationImages(idList);
+        List<String> accommodationImages = getAccommodationImages(accommodationSimpleDTOPage);
 
         return AccommodationsResponse.createAccommodationsResponse(accommodationSimpleDTOPage, accommodationImages);
     }
 
-    private Page<AccommodationSimpleDTO> getAccommodationSimpleProjectionList(Category category, Long cursorId, Pageable pageable, Long cursorMinPrice) {
+    private Page<AccommodationSimpleDTO> getAccommodationSimpleDTOList(Category category, Long cursorId, Pageable pageable, Long cursorMinPrice) {
         if (cursorId == null) {
             if (cursorMinPrice == null) {
                 return accommodationRepository.findByCategory(category, pageable);
@@ -44,13 +42,37 @@ public class AccommodationService {
         }
     }
 
-    private List<String> getAccommodationImages(List<Long> ids) {
-        String idListString = ids.stream()
+    private List<String> getAccommodationImages(Page<AccommodationSimpleDTO> accommodationSimpleDTOPage) {
+        List<Long> idList = accommodationSimpleDTOPage.stream()
+            .map(AccommodationSimpleDTO::id).toList();
+        String idListString = idList.stream()
             .map(String::valueOf)
             .collect(Collectors.joining(","));
-        return accommodationRepository.findAccommodationImagesByIds(ids, idListString);
+        return accommodationRepository.findAccommodationImagesByIds(idList, idListString);
     }
 
+
+    @Cacheable(cacheNames = "accommodationListByRegion", key = "#region + ':' + #cursorId + ':' + #cursorMinPrice")
+    @Transactional(readOnly = true)
+    public AccommodationsResponse findByRegion(String region, Long cursorId, Pageable pageable, Long cursorMinPrice) {
+        Page<AccommodationSimpleDTO> accommodationSimpleDTOPage = getAccommodationSimpleDTOListByRegion(region, cursorId, pageable, cursorMinPrice);
+
+        List<String> accommodationImages = getAccommodationImages(accommodationSimpleDTOPage);
+
+        return AccommodationsResponse.createAccommodationsResponse(accommodationSimpleDTOPage, accommodationImages);
+    }
+
+    private Page<AccommodationSimpleDTO> getAccommodationSimpleDTOListByRegion(String region, Long cursorId, Pageable pageable, Long cursorMinPrice) {
+        if (cursorId == null) {
+            if (cursorMinPrice == null) {
+                return accommodationRepository.findByRegion(region, pageable);
+            }else{
+                return accommodationRepository.findByRegionWithCursorMinPrice(region,cursorMinPrice,pageable);
+            }
+        } else {
+            return accommodationRepository.findByRegionWithCursor(region,cursorMinPrice,cursorId,pageable);
+        }
+    }
 
 
 

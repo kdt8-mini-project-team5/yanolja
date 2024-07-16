@@ -52,7 +52,8 @@ public class RedisConfig {
 
         // 캐시별로 개별 설정을 적용
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-        cacheConfigurations.put("accommodationList", cacheConfig.entryTtl(Duration.ofSeconds(10L)));
+        cacheConfigurations.put("accommodationListByCategory", cacheConfig.entryTtl(Duration.ofSeconds(10L)));
+        cacheConfigurations.put("accommodationListByRegion", cacheConfig.entryTtl(Duration.ofSeconds(10L)));
 
         return RedisCacheManager
             .RedisCacheManagerBuilder
