@@ -2,6 +2,7 @@ package com.yanolja.yanolja.global.handler.exception;
 
 import com.yanolja.yanolja.global.model.response.ErrorResponse;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpStatusCodeException;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 @Slf4j
 @Order(value = 0)
 public class HandlerException {
@@ -22,7 +24,7 @@ public class HandlerException {
         log.error(e.getStatusText());
 
         return ResponseEntity.status(e.getStatusCode())
-                .body(new ErrorResponse(e.getStatusText()));
+            .body(new ErrorResponse(e.getStatusText()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
