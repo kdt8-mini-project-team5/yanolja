@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 public interface AccommodationRepository extends JpaRepository<Accommodation, Long> {
 
     @Query("SELECT new com.yanolja.yanolja.domain.accommodation.model.response.AccommodationSimpleDTO(a.id,a.title,a.minPrice,a.region) "
@@ -68,4 +70,7 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
         countQuery = "SELECT COUNT(a.id) FROM Accommodation a WHERE a.region LIKE CONCAT(:region,'%') AND a.minPrice = :minPrice or a.minPrice > :minPrice"
     )
     Page<AccommodationSimpleDTO> findByRegionWithCursorMinPrice(String region, Long minPrice, Pageable pageable);
+
+    @Query("SELECT a FROM Accommodation a JOIN FETCH a.images where a.id = :id")
+    Optional<Accommodation> findAccommodationDetailById(Long id);
 }
