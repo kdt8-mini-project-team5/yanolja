@@ -37,6 +37,9 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	//Redis
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis', version: '3.1.2'
+
 	//Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
