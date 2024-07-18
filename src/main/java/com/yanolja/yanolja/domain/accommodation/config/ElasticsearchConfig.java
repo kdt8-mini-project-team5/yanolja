@@ -21,4 +21,8 @@ public class ElasticsearchConfig {
         ElasticsearchTransport transport = new RestClientTransport(restClient, new co.elastic.clients.json.jackson.JacksonJsonpMapper());
         return new ElasticsearchClient(transport);
     }
+
+
+
+
 }
